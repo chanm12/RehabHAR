@@ -296,10 +296,24 @@ In addition, We provide an example of the final output (STRICTLY reuse this stru
     return prompt
 
 
-def generate_label_semantics(activity_label: str) -> str:
+def generate_label_semantics(activity_label: str, is_impaired: bool = False) -> str:
+    
+    impaired_context = ""
+    if is_impaired:
+        impaired_context = """
+CRITICAL IMPAIRED CONTEXT:
+This definition is specifically for a senior rehabilitation patient or individual with mobility impairment. 
+Describe the expected biomechanics considering age-related or pathological degradation. 
+You MUST include variations such as:
+- Reduced Range of Motion (ROM) or stiffness
+- Slower execution speed (cadence/rhythm)
+- Asymmetrical force application or lateral compensations
+- Increased postural sway or reduced steadiness
+"""
 
     prompt = f"""
 You are a senior kinesiology and biomechanics expert. Write a concise, factual, and structured semantic interpretation for the activity label: "{activity_label}".
+{impaired_context}
 
 CRITICAL FORMATTING REQUIREMENTS:
 - Use EXACTLY these three section headers (verbatim):

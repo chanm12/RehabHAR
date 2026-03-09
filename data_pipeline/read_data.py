@@ -11,10 +11,34 @@ Provides:
 import pandas as pd
 import numpy as np
 import random
+import pandas as pd
+import numpy as np
+import random
 import ast
 import re
+import os
+import json
 from tqdm import tqdm
 from prompt_generation.data_processing import preprocess_acc_segment
+
+LABEL_SEMANTICS_CACHE = {}
+
+def get_label_semantics(label_str: str, target: str = "healthy") -> str:
+    global LABEL_SEMANTICS_CACHE
+    if not LABEL_SEMANTICS_CACHE:
+        json_path = "data/label_semantics.json"
+        if os.path.exists(json_path):
+            try:
+                with open(json_path, 'r') as f:
+                    LABEL_SEMANTICS_CACHE = json.load(f)
+            except Exception as e:
+                print(f"Warning: Failed to load {json_path}: {e}")
+    
+    key = label_str.lower().strip()
+    if key in LABEL_SEMANTICS_CACHE:
+        return LABEL_SEMANTICS_CACHE[key].get(target, label_str)
+    return label_str
+
 
 
 def _rotate_gyro_to_aligned(gyro_xyz, R):
@@ -63,8 +87,8 @@ def generate_step1(target_text, target_data, target):
     data = []
     for i in range(target_text.shape[0]):
         text_label = target_text["label"].iloc[i]
-        text1a, text1b = str(target_text["pattern"].iloc[i]), str(
-            target_text["label"].iloc[i])
+        text1a = str(target_text["pattern"].iloc[i])
+        text1b = get_label_semantics(str(target_text["label"].iloc[i]), "healthy")
         time_series = target_data[i]
         label = label_.index(text_label)
 
@@ -72,43 +96,43 @@ def generate_step1(target_text, target_data, target):
             index_j = random.choice([0])
             com_s = target_text[target_text["label"] == label_[index_j]]
             com_s = com_s.sample(n=1)
-            com_s_a, com_s_b = str(com_s["pattern"].iloc[0]), str(
-                com_s["label"].iloc[0])
+            com_s_a = str(com_s["pattern"].iloc[0])
+            com_s_b = get_label_semantics(str(com_s["label"].iloc[0]), "healthy")
 
             index_j = random.choice([1, 2, 3])
             com_ds = target_text[target_text["label"] == label_[index_j]]
             com_ds = com_ds.sample(n=1)
-            com_ds_a, com_ds_b = str(com_ds["pattern"].iloc[0]), str(
-                com_ds["label"].iloc[0])
+            com_ds_a = str(com_ds["pattern"].iloc[0])
+            com_ds_b = get_label_semantics(str(com_ds["label"].iloc[0]), "healthy")
             data.append((time_series, text1a, text1b, label, com_s_a, com_s_b, com_ds_a, com_ds_b))
 
         if text_label == 'still':
             index_j = random.choice([1])
             com_s = target_text[target_text["label"] == label_[index_j]]
             com_s = com_s.sample(n=1)
-            com_s_a, com_s_b = str(com_s["pattern"].iloc[0]), str(
-                com_s["label"].iloc[0])
+            com_s_a = str(com_s["pattern"].iloc[0])
+            com_s_b = get_label_semantics(str(com_s["label"].iloc[0]), "healthy")
 
             index_j = random.choice([0, 2, 3])
             com_ds = target_text[target_text["label"] == label_[index_j]]
             com_ds = com_ds.sample(n=1)
-            com_ds_a, com_ds_b = str(com_ds["pattern"].iloc[0]), str(
-                com_ds["label"].iloc[0])
-        data.append((time_series, text1a, text1b, label, com_s_a, com_s_b, com_ds_a, com_ds_b))
+            com_ds_a = str(com_ds["pattern"].iloc[0])
+            com_ds_b = get_label_semantics(str(com_ds["label"].iloc[0]), "healthy")
+            data.append((time_series, text1a, text1b, label, com_s_a, com_s_b, com_ds_a, com_ds_b))
 
         if text_label == 'stairsdown' or text_label == 'stairsup':
             index_j = random.choice([2, 3])
             com_s = target_text[target_text["label"] == label_[index_j]]
             com_s = com_s.sample(n=1)
-            com_s_a, com_s_b = str(com_s["pattern"].iloc[0]), str(
-                com_s["label"].iloc[0])
+            com_s_a = str(com_s["pattern"].iloc[0])
+            com_s_b = get_label_semantics(str(com_s["label"].iloc[0]), "healthy")
 
             index_j = random.choice([0, 1])
             com_ds = target_text[target_text["label"] == label_[index_j]]
             com_ds = com_ds.sample(n=1)
-            com_ds_a, com_ds_b = str(com_ds["pattern"].iloc[0]), str(
-                com_ds["label"].iloc[0])
-        data.append((time_series, text1a, text1b, label, com_s_a, com_s_b, com_ds_a, com_ds_b))
+            com_ds_a = str(com_ds["pattern"].iloc[0])
+            com_ds_b = get_label_semantics(str(com_ds["label"].iloc[0]), "healthy")
+            data.append((time_series, text1a, text1b, label, com_s_a, com_s_b, com_ds_a, com_ds_b))
 
     return data
 
@@ -117,14 +141,14 @@ def generate_step2(target_text, target_data, source_text, source_data):
     data = []
     label_ = ['walk', 'still', 'stairsdown', 'stairsup']
     for i in range(int(target_text.shape[0])):
-        text1a, text1b = str(target_text["pattern"].iloc[i]), str(
-            target_text["label"].iloc[i])
+        text1a = str(target_text["pattern"].iloc[i])
+        text1b = get_label_semantics(str(target_text["label"].iloc[i]), "healthy")
         time_series = target_data[target_text.index[i]]
         label = label_.index(target_text["label"].iloc[i])
         data.append((time_series, text1a, text1b, label))
     for i in range(source_text.shape[0]):
-        text1a, text1b = str(source_text["pattern"].iloc[i]), str(
-            source_text["label"].iloc[i])
+        text1a = str(source_text["pattern"].iloc[i])
+        text1b = get_label_semantics(str(source_text["label"].iloc[i]), "healthy")
         time_series = source_data[source_text.index[i]]
         label = label_.index(source_text["label"].iloc[i])
         data.append((time_series, text1a, text1b, label))
@@ -136,8 +160,8 @@ def generate_step3(target_text, target_data):
     bb = target_text[target_text["label"].isin(['walk', 'still', 'stairsdown', 'stairsup'])]
     label_ = ['walk', 'still', 'stairsdown', 'stairsup']
     for i in range(bb.shape[0]):
-        text1a, text1b = str(bb["pattern"].iloc[i]), str(
-            bb["label"].iloc[i])
+        text1a = str(bb["pattern"].iloc[i])
+        text1b = get_label_semantics(str(bb["label"].iloc[i]), "healthy")
         time_series = target_data[bb.index[i]]
         label = label_.index(bb["label"].iloc[i])
         data.append((time_series, text1a, text1b, label))
