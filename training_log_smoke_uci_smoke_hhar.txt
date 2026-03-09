@@ -1,0 +1,7 @@
+Epoch 1/1, Loss: 1.3913
+Cross_dataset_valid: Accuracy = 0.0000, F1 = 0.0000 | BestAcc = 0.0000
+Epoch 1/1, Loss: 1.3919
+Cross_dataset_valid: Accuracy = 1.0000, F1 = 1.0000 | BestAcc = 0.0000
+New best model saved
+Epoch 1/1, Loss: 1.3945
+Cross_dataset_valid: Accuracy = 0.0000, F1 = 0.0000 | BestAcc = 0.0000
