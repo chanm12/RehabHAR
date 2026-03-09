@@ -1,0 +1,32 @@
+*Pattern Summary
+- Strength:
+  - [ACC] The SVM mean is around 10 m/s² with slight variations and a peak-to-peak range of approximately 0.5 m/s².
+  - [GYRO] Angular velocity magnitude ranges from 0 to about 1 rad/s.
+  - → Conclusion: intensity is low. Clearly non-still?
+
+- Axis dominance:
+  - [ACC] The Z-axis shows the largest peaks, especially towards the end.
+  - [GYRO] The yaw axis (Z) exhibits the most significant change.
+  - → Conclusion: vertical-leaning.
+
+- Rhythm:
+  - [ACC] Regular periodic peaks are visible, particularly in the Z-axis, with an estimated frequency of around 1 Hz.
+  - [GYRO] Matching periodicity is visible in the gyro data, especially in the Z-axis.
+  - → Conclusion: estimated step frequency is around 1 Hz, with rhythmic stability.
+
+- Shape:
+  - [ACC] Peaks in the Z-axis are sharp and impact-like, with asymmetric rise/fall.
+  - [GYRO] Gyroscope waveforms are more jerky, especially towards the end.
+  - → Conclusion: impact-type, asymmetric.
+
+- Posture / drift:
+  - [GYRO] No significant DC offset or slow drift is visible.
+  - → Conclusion: no gradual tilt/rotation present.
+
+- Gyro–Acc sync:
+  - [SYNC] Acceleration and gyro peaks appear time-aligned, especially in the latter part.
+  - → Conclusion: well synchronized.
+
+- Vertical impact:
+  - [ACC] Peak-to-valley amplitudes of sharp vertical features in the Z-axis are approximately 0.5 m/s².
+  - → Conclusion: impact strength is moderate and consistent.

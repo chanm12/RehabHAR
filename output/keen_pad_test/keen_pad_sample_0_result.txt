@@ -1,0 +1,32 @@
+*Pattern Summary
+- Strength:
+  - [ACC] The SVM mean is around 10 m/s² with peak-to-peak range reaching approximately 12 m/s².
+  - [GYRO] Angular velocity magnitude ranges up to about 3 rad/s.
+  - → Conclusion: intensity is medium. Clearly non-still.
+
+- Axis dominance:
+  - [ACC] Y-axis shows the strongest sustained oscillation and has the largest peaks.
+  - [GYRO] Roll (X-axis) dominates.
+  - → Conclusion: vertical-leaning.
+
+- Rhythm:
+  - [ACC] Regular periodic peaks are visible, with a frequency of approximately 1 Hz.
+  - [GYRO] Matching periodicity is observed.
+  - → Conclusion: estimated step frequency is about 1 Hz with rhythmic stability.
+
+- Shape:
+  - [ACC] Peaks are sharp and impact-like, with asymmetric rise/fall.
+  - [GYRO] Waveforms are smooth.
+  - → Conclusion: impact-type with asymmetric peaks.
+
+- Posture / drift:
+  - [GYRO] No significant DC offset or slow drift visible.
+  - → Conclusion: no gradual tilt/rotation present.
+
+- Gyro–Acc sync:
+  - [SYNC] Acc peaks and gyro peaks appear time-aligned.
+  - → Conclusion: well synchronized.
+
+- Vertical impact:
+  - [ACC] Peak-to-valley amplitudes on the Z-axis are moderate, around 10 m/s².
+  - → Conclusion: impact strength is moderate and consistent.

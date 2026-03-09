@@ -1,0 +1,50 @@
+# RehabHAR — Default Configuration
+# Override via CLI args or experiment-specific YAML files.
+
+# ─── Model ───────────────────────────────────────────────
+model:
+  bert_model: "allenai/scibert_scivocab_uncased"
+  max_len: 512
+  stride: 128
+  pool: "mean"
+
+# ─── Sensor Encoder ─────────────────────────────────────
+sensor_encoder:
+  input_dim: 6          # acc (3) + gyro (3)
+  d_model: 768
+  nhead: 8
+  num_encoder_layers: 4
+  dim_feedforward: 2048
+  dropout: 0.1
+
+# ─── Training — Stage 1 (Text Encoder) ──────────────────
+stage1:
+  batch_size: 10
+  num_epochs: 10
+  lr: 1.0e-5
+  beta: 0.5
+  triplet_margin: 1.0
+
+# ─── Training — Stage 2 (Sensor Encoder) ────────────────
+stage2:
+  batch_size: 256
+  num_epochs: 50
+  lr: 4.0e-5
+  beta: 0.5
+
+# ─── Label Generation ───────────────────────────────────
+label_generation:
+  topk: 12
+  temperature: 0.07
+
+# ─── Data ────────────────────────────────────────────────
+data:
+  source: "uci"
+  target: "hhar"
+  data_dir: "data/processed"
+  sampling_rate: 50.0
+
+# ─── Paths ───────────────────────────────────────────────
+paths:
+  checkpoint_dir: "checkpoints"
+  log_dir: "logs"

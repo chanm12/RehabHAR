@@ -1,0 +1,6 @@
+sample_id,true_label,score_a_overall,score_a_struct,match_a,score_v_overall,score_v_struct,match_v
+3,sit,5.0,5.0,True,3.2,3.5,True
+4,sit,5.0,5.0,True,3.2,3.5,True
+1,sit,5.0,5.0,True,3.2,3.5,True
+2,sit,5.0,5.0,True,3.2,3.5,True
+0,sit,5.0,5.0,True,3.2,3.5,True

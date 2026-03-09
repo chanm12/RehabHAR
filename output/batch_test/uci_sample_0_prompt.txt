@@ -1,0 +1,134 @@
+
+You are a professional wearable-device motion analysis expert, specializing in identifying motion patterns and gait characteristics from **short-window** accelerometer and gyroscope data. 
+────────────────────────────────
+【Data Introduction】
+The data you need to anlyzez is a segment of IMU sensor reading. 
+- It include (i) accelerometer data: coordinates are **gravity-aligned**, with +Z pointing **upward (vertical)**; Vert (vertical) and Horiz (horizontal) components can be used to distinguish **up–down oscillation vs. horizontal swinging**.
+(ii) gyroscope data: raw angular velocity (rad/s), **no gravity alignment needed**.
+- Sampling rate: 50 Hz
+- Device location: waist
+- The context is that the IMU sensor reading may be in one of the following states: [walking, biking, jogging, going upstairs, walking downstairs, stilling]
+
+
+────────────────────────────────
+【Data Analysis】
+All summary values for the current window; directly reference numbers with units
+1) Accelerometer concise analysis (gravity-aligned):
+{'meta': {'N': 120, 'fs': 50.0, 'duration_s': 2.4}, 'stats': {'x_mean': 0.03991968835249703, 'y_mean': 0.04653476683487049, 'z_mean': 9.950159977659181, 'svm_mean': 9.964068351526327, 'svm_std': 0.14731025740553916, 'svm_p2p': 1.2402489147526623}, 'body_summary': {'vert_rms': 0.12597905283256614, 'horiz_rms': 0.5394957552816069, 'vert_p2p': 1.0287275141598862, 'horiz_p2p': 2.5620899177609053}, 'freq_summary': {'dom_freq_hz': 0.8333333333333334, 'dom_freq_spm': 50.0, 'low_high_energy_ratio': 0.0, 'harmonic_2x_ratio': nan}, 'ramanujan_summary': {'period_q': 53, 'periodicity_score': 0.10393286016933002, 'estimated_hz': 0.9433962264150944, 'harmonic_integrity': 0.07178505934789112}, 'peaks_summary': {'peak_count': 3, 'ibi_mean_s': 0.56, 'ibi_std_s': 0.18, 'ibi_cv': 0.3214285714279974}, 'jerk_summary': {'rms': 9.306185418629612, 'p95': 20.015049133607953, 'vert_rms': 1.8650847123888339, 'vert_p95': 5.362910272069544}}
+
+Field description (Accelerometer):
+- meta: N, fs
+- stats: statistics of each axis and SVM (mean, std, min, max, p2p)
+- body_summary: dynamic statistics after gravity separation (vert_rms, horiz_rms, vert_p2p, horiz_p2p)
+- freq_summary: dominant frequency / step frequency and spectrum structure (dom_freq_hz, dom_freq_spm, low_high_energy_ratio, harmonic_2x_ratio)
+- ramanujan_summary: Ramanujan Periodic Transform (RPT) features. 'periodicity_score' (0-1) indicates rhythm stability/periodicity strength. 'estimated_hz' is the RPT-derived frequency.
+- peaks_summary: peaks / rhythm (peak_count, ibi_mean_s, ibi_std_s, ibi_cv)
+- jerk_summary: jerk intensity (rms / p95 / vert_rms / vert_p95, in m/s³)
+
+2) Gyroscope features (angular velocity):
+{'meta': {'N': 120, 'fs': 50.0, 'duration_s': 2.4}, 'time_stats': {'mean_xyz': (0.00934551605567522, 0.01924677817597361, -0.014314367839836818), 'rms_xyz': (0.09198523744626515, 0.21538110574539768, 0.18692921174165186), 'p2p_xyz': (0.8067118645321174, 1.668546786512878, 1.5327334492248266), 'zcr_xyz': (0.2605042016806723, 0.3277310924369748, 0.06722689075630252), 'wmag_mean': 0.11325600076341139, 'wmag_rms': 0.29965452578346163, 'wmag_p2p': 1.132200532692418}, 'energy': {'energy_frac_xyz': (0.0942311702795659, 0.5166227439394311, 0.3891460857809102), 'net_angle_xyz_rad': (0.022429238533620527, 0.04619226762233667, -0.034354482815608364), 'abs_angle_xyz_rad': (0.08128017418446565, 0.17336273527731622, 0.1608096834547463)}, 'spectral': {'welch_wmag': {'dom_freq_hz': 0.4166666666666667, 'top_freqs': [(0.4166666666666667, 0.011755053708865025), (0.8333333333333334, 0.0003299833513167157), (1.6666666666666667, 0.00024436900909153404), (1.25, 0.00023446614977899955), (2.5, 0.0001737193916795806)]}, 'welch_wx': {'dom_freq_hz': 0.4166666666666667, 'top_freqs': [(0.4166666666666667, 0.00018254337654423927), (1.25, 5.602338539805933e-05), (2.916666666666667, 4.4817682765188965e-05), (2.0833333333333335, 4.431751588952951e-05), (3.75, 2.9912569483995613e-05)]}, 'peak_rate_hz': {'wx_bandpassed': 0.7142857142857143, 'wmag_bandpassed': 2.0833333333333335}, 'step_freq_est_hz': 1.0416666666666667}}
+Field description (Gyroscope):
+- time_stats: mean_xyz, rms_xyz, p2p_xyz, wmag_mean/rms/p2p, zcr_xyz
+- energy: energy_frac_xyz (distribution of ∑ω²), net_angle_xyz_rad, abs_angle_xyz_rad
+- spectral: welch_wmag / welch_wx (dom_freq_hz, top_freqs), peak_rate_hz, step_freq_est_hz
+
+3) Gyro–Acc synchronization & vertical impact (cross-sensor alignment):
+{'meta': {'N': 120, 'fs': 50.0, 'duration_s': 2.4}, 'step_metrics': {'step_rate_acc_hz': 1.8181818181818181, 'step_rate_gyro_hz': 1.0989010989010988, 'step_rate_diff_hz': 0.7192807192807193, 'n_steps_acc': 3, 'n_steps_gyro': 3, 'step_rate_vert_hz': 1.7857142857142858, 'step_rate_horiz_hz': 1.3888888888888886}, 'sync_metrics': {'n_matched_pairs': 1, 'mean_lag_s': -0.05999999999999961, 'median_abs_lag_s': 0.05999999999999961, 'phase_consistency_0to1': 1.0}, 'vertical_impact': {'per_step_peak_to_valley_mps2': [0.1594650524896979, 0.37686257399361633, 1.1934793763100329], 'impact_median_mps2': 0.37686257399361633, 'impact_p95_mps2': 1.1118176960783912}, 'body_frame': {'vert_rms_mps2': 0.23828769947317652, 'horiz_rms_mps2': 0.5210264930921295, 'vert_p2p_mps2': 1.224354165326861}}
+
+Field description (Sync / Impact):
+Coordinates: gravity aligned with +Z vertical upward; Vert vs Horiz can be used for up–down vs sideways motion
+- step_metrics: step_rate_acc_hz, step_rate_gyro_hz, step_rate_diff_hz, n_steps_acc/gyro
+- sync_metrics: n_matched_pairs, mean_lag_s, median_abs_lag_s, phase_consistency_0to1
+- vertical_impact: per_step_peak_to_valley_mps2 list, impact_median_mps2, impact_p95_mps2
+
+────────────────────────────────
+【Knowledge】
+
+1. Vertical impact–related features are indicators of high-impact tasks. 
+In IMU, stair descent usually produces the largest vertical impact (and correspondingly higher jerk) compared with ascent and level walking. 
+Ascent/fast walking generally show moderate–strong vertical oscillation with a continuous rhythm; 
+level walking shows medium amplitude with symmetric periodicity; still presents low amplitude and low jerk. 
+Gyroscope 'rotational intensity' can help identify arm swing/trunk rotation typical of walking, but this depends on sensor placement and behavior
+
+2. When the sensor is positioned near the body's center of mass (e.g., waist or front pocket) and the axes are gravity-aligned, the relative contributions of vertical and horizontal acceleration, together with the energy distribution across gyroscope axes, can help differentiate dominant movement mechanisms:
+Vertical-dominant patterns often appear in movements with clear vertical displacement or impact.
+Horizontal-dominant patterns are more typical of level walking or low-intensity motion.
+Note that gait speed, handrail use, restricted arm swing, and sensor placement can all influence these tendencies.
+
+3. During coordinated gait such as level walking, accelerometer and gyroscope signals often show similar step-related periodicity in rate and timing. 
+When arm motion is limited or movement becomes asymmetric (e.g., using a handrail on stairs or carrying objects), accelerometer rhythms may persist while gyroscope activity weakens or becomes less synchronized, leading to partial decoupling.
+
+────────────────────────────────
+【Task Introduction】
+You task is analyzing the pattern of the above IMU data segment.
+We summarize the analysis into the following categories. 
+Please respond strictly following the 7-point output format (numbers → direct verbal explanation; full units; mark data origin as [ACC] / [GYRO] / [SYNC]).
+Do not directly label the activity as a specific class (e.g., "walking", "jogging"). 
+If you think there is a pattern that particularly fits, you are also welcome to add.
+
+• Category 1 **Strength (overall magnitude and whether clearly non-still)**
+- [ACC] stats.SVM mean, std / p2p (m/s²)
+- [ACC] jerk_summary rms / p95 (m/s³)
+- [GYRO] wmag_rms / wmag_p2p (rad/s)
+→ Conclusion: intensity is low / medium / high / others? Clearly non-still?
+
+• Category 2 **Directional characteristics (contrast sustained oscillation vs. impact dominance; interpret movement mechanism)**
+- [ACC] body_summary: vert_rms / horiz_rms, vert_p2p / horiz_p2p (m/s²):
+  - First report vert_rms and horiz_rms (m/s²), and explicitly compare them using relational wording. Clearly state which direction has stronger sustained oscillation (RMS).
+  - Then report vert_p2p and horiz_p2p (m/s²), and again compare them using ratio-style phrasing. If RMS and P2P suggest different dominance, describe it as a mixed profile rather than forcing a single label.
+- [GYRO] energy_frac_xyz (distribution of ∑ω²; X=roll/arm-swing, Y=pitch, Z=yaw/torso-twist):
+  -Report energy_frac_xyz (X=roll/arm-swing, Y=pitch, Z=yaw/torso-twist), and briefly state whether rotation is 
+  roll-led, pitch-dominant, yaw-suppressed, or balanced.
+→ Conclusion: Use a concise contrast statement in the form "Sustained sway leans direction, and peak forces land in direction (≈ratio×) → the motion pattern is vertical-leaning / horizontal-leaning / mixed？"
+
+• Category 3 **Rhythm (final step frequency & stability)**
+- [ACC] peaks_summary: ibi_mean_s / ibi_std_s / ibi_cv; peaks_freq_spm = 60 / ibi_mean_s
+- [ACC] freq_summary: dom_freq_hz / dom_freq_spm, harmonic_2x_ratio, low_high_energy_ratio
+- [GYRO] spectral: step_freq_est_hz (≈ peak_rate/2), welch_wmag.top_freqs (check for integer harmonic structure)
+- (Conflict resolution: if [ACC] dom_freq_spm and peaks_freq_spm disagree, follow established rules – prefer peaks or 2×dom_freq_spm)
+→ Conclusion: final step frequency (Hz / spm) and stability (IBI CV)? Is spectrum harmonically regular?
+
+• Category 4 **Waveform shape (impact-like vs smooth; rising/falling symmetry)**
+- [ACC] jerk_summary (rms / p95 / vert_rms / vert_p95) + qualitative interpretation of peak sharpness
+- [ACC] or [GYRO] (after bandpass) describe symmetry of rise vs fall (e.g., half-height width ratio)
+→ Conclusion: more impact-type or smooth transition / others ? Symmetric or asymmetric?
+
+• Category 5 **Postural drift / slow orientation bias (only if relevant)**
+- [GYRO] time_stats.mean_xyz (rad/s) and energy.net_angle_xyz_rad / abs_angle_xyz_rad (rad)
+→ Conclusion: is there continuous forward-tilt / inward-rotation (e.g., mean_y<0, Δθ_y<0) or gradual drift instead of isolated wrist turns?
+
+• Category 6 **Gyro–Acc sync**
+- [SYNC] step_rate_acc_hz vs step_rate_gyro_hz (Hz) and difference
+- [SYNC] median_abs_lag_s, mean_lag_s (s)
+- [SYNC] phase_consistency_0to1 (0–1)
+→ Conclusion: are step rates consistent but phase misaligned (decoupling, common in stair ascent using handrail)? Or well synchronized (typical in flat walking) / others?
+
+• Category 7 **Vertical impact (cross-sensor: accelerometer vertical component)**
+- [SYNC]/[ACC] vertical_impact: impact_median_mps2, impact_p95_mps2 (m/s²), and per-step dispersion
+→ Conclusion: impact strength is "high and scattered" or "moderate and stable" or others
+
+
+────────────────────────────────
+【Output template】
+We provide a template of the final output (STRICTLY reuse this structure):
+*Pattern Summary
+- Strength:
+- Axis dominance:
+- Rhythm:
+- Shape:
+- Posture / drift:
+- Gyro–Acc sync:
+- Vertical impact:
+
+
+In addition, We provide an example of the final output (STRICTLY reuse this structure):
+- Strength:
+  - [ACC] SVM mean 10.27 m/s², std 2.29 m/s², p2p 10.00 m/s². Jerk rms 49.22 m/s³, p95 75.35 m/s³.
+  - [GYRO] wmag_rms 0.97 rad/s, wmag_p2p 2.20 rad/s.
+  - → Conclusion: intensity is medium–high; clearly non-still.
+
+- Axis dominance:
+  - [ACC] Sustained oscillation: vert_rms 2.31 m/s² vs horiz_rms 2.09 m/s² → vertical slightly stronger. Peak-to-peak: vert_p2p 10.17 m/s² vs horiz_p2p 4.95 m/s² → vertical ≈2.1× larger. Mixed but overall vertical-leaning (small vertical lead in RMS, clear vertical lead in peaks).
+  - [GYRO] energy_frac_xyz = (X 0.106, Y 0.496, Z 0.398) → pitch-dominant rotation with modest yaw, low roll.
+  - → Conclusion: Sustained sway leans vertical, and peak forces land in vertical (≈2.1×) → motion pattern is vertical-leaning.
+

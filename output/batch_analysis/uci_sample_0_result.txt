@@ -1,0 +1,34 @@
+*Pattern Summary
+- Strength:
+  - [ACC] SVM mean 9.964068351526327 m/s², std 0.14731025740553916 m/s², p2p 1.2402489147526623 m/s². Jerk rms 9.306185418629612 m/s³, p95 20.015049133607953 m/s³.
+  - [GYRO] wmag_rms 0.29965452578346163 rad/s, wmag_p2p 1.132200532692418 rad/s.
+  - → Conclusion: overall intensity is low–medium; clearly non-still but not strongly vigorous.
+
+- Axis dominance:
+  - [ACC] Sustained oscillation: vert_rms 0.12597905283256614 m/s² vs horiz_rms 0.5394957552816069 m/s² → horizontal RMS ≈4.3× larger (horizontal clearly stronger). Peak-to-peak: vert_p2p 1.0287275141598862 m/s² vs horiz_p2p 2.5620899177609053 m/s² → horiz_p2p ≈2.5× larger.
+  - [GYRO] energy_frac_xyz = (X 0.0942311702795659, Y 0.5166227439394311, Z 0.3891460857809102) → pitch-dominant rotation (Y) with moderate yaw and low roll.
+  - → Conclusion: Sustained sway strongly leans horizontal, and peak forces also land in horizontal (≈2.5×) → the motion pattern is horizontal-leaning / mixed (horizontal-dominant with some rotational pitch).
+
+- Rhythm:
+  - [ACC] peaks_summary: ibi_mean_s 0.56 s, ibi_std_s 0.18 s, ibi_cv 0.3214285714279974 → peaks_freq ≈1.7857 Hz (≈107.14 spm).
+  - [ACC] freq_summary: dom_freq_hz 0.8333333333333334 Hz (dom_freq_spm 50.0 spm), harmonic_2x_ratio = nan, low_high_energy_ratio = 0.0.
+  - [GYRO] spectral: step_freq_est_hz 1.0416666666666667 Hz; welch_wmag.top_freqs top at 0.4166666666666667 Hz (low power).
+  - (Resolution) Peaks-based step rate (~1.79 Hz / 107.1 spm) and 2×dom_freq_hz (≈1.667 Hz / 100 spm) are nearer each other than the raw dom_freq_hz; gyro gives a lower/ambiguous estimate.
+  - → Conclusion: final step frequency ≈1.79 Hz (≈107 spm). Stability moderate (IBI CV ≈0.32 → notable variability). Spectrum is not strongly harmonically regular (low periodicity/harmonic integrity and mixed/weak spectral peaks).
+
+- Shape:
+  - [ACC] jerk_summary: rms 9.306185418629612 m/s³, p95 20.015049133607953 m/s³; vert_rms (jerk) 1.8650847123888339 m/s³, vert_p95 5.362910272069544 m/s³ → presence of some sharp transient accelerative events.
+  - [ACC]/[GYRO] band-limited spectral peaks are weak; waveform energy shows stronger low-frequency horizontal swinging with occasional sharper vertical transients.
+  - → Conclusion: waveform is predominantly smooth horizontal swing with intermittent impact-like vertical spikes (mixed); shape shows some asymmetric/peaky vertical events rather than uniformly symmetric strides.
+
+- Posture / drift:
+  - [GYRO] time_stats.mean_xyz = (0.00934551605567522, 0.01924677817597361, -0.014314367839836818) rad/s; energy.net_angle_xyz_rad = (0.022429238533620527, 0.04619226762233667, -0.034354482815608364) rad; abs_angle_xyz_rad = (0.08128017418446565, 0.17336273527731622, 0.1608096834547463) rad.
+  - → Conclusion: no meaningful continuous orientation drift; mean angular rates and net angles are very small (few degrees at most), so no sustained tilt or rotation bias is evident.
+
+- Gyro–Acc sync:
+  - [SYNC] step_rate_acc_hz 1.8181818181818181 Hz vs step_rate_gyro_hz 1.0989010989010988 Hz → difference 0.7192807192807193 Hz. n_matched_pairs 1, mean_lag_s -0.05999999999999961 s, median_abs_lag_s 0.05999999999999961 s, phase_consistency_0to1 1.0.
+  - → Conclusion: accelerometer and gyroscope show inconsistent step rates (ACC higher than GYRO) with only one matched pair; although that pair has tight phase consistency, the overall pattern suggests partial decoupling (common when trunk/arm rotation is reduced or anti-phased) rather than well-synchronized flat-gait motion.
+
+- Vertical impact:
+  - [SYNC]/[ACC] vertical_impact: per_step_peak_to_valley_mps2 = [0.1594650524896979, 0.37686257399361633, 1.1934793763100329]; impact_median_mps2 0.37686257399361633 m/s²; impact_p95_mps2 1.1118176960783912 m/s².
+  - → Conclusion: vertical impacts are moderate on median but scattered (one noticeably larger outlier). Overall "moderate and scattered" vertical impact rather than uniformly high-impact.

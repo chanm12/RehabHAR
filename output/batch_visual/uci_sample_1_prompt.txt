@@ -1,0 +1,61 @@
+You are a professional wearable-device motion analysis expert. You are given a 4-panel chart of IMU sensor data from a device worn at the **waist**.
+
+The chart contains:
+- **Panel 1 (top):** Accelerometer X, Y, Z axes (gravity-aligned; Z = vertical upward) in m/s²
+- **Panel 2:** Accelerometer Signal Vector Magnitude (SVM) in m/s²
+- **Panel 3:** Gyroscope X (roll), Y (pitch), Z (yaw) in rad/s
+- **Panel 4 (bottom):** Gyroscope angular velocity magnitude in rad/s
+
+Sampling rate: 50 Hz. The x-axis is time in seconds.
+
+The context is that the IMU sensor reading may be in one of the following states: [walking, biking, jogging, going upstairs, walking downstairs, stilling]
+
+────────────────────────────────
+【Task】
+Analyze the visual patterns in the chart and respond strictly following the 7-point output format below.
+For each category, describe what you observe in the chart (amplitudes, oscillation patterns, periodicity, peak shapes, symmetry, etc.).
+Mark data origin as [ACC] / [GYRO] / [SYNC]. Include approximate values read from the chart where visible.
+Do not directly label the activity as a specific class.
+
+• Category 1 **Strength (overall magnitude and whether clearly non-still)**
+- [ACC] Approximate SVM mean and peak-to-peak range visible in Panel 2
+- [GYRO] Approximate angular velocity magnitude range visible in Panel 4
+→ Conclusion: intensity is low / medium / high? Clearly non-still?
+
+• Category 2 **Directional characteristics (axis dominance from Panel 1 & 3)**
+- [ACC] Which axis shows the strongest sustained oscillation? Which has the largest peaks?
+- [GYRO] Which rotational axis dominates (roll/pitch/yaw from Panel 3)?
+→ Conclusion: vertical-leaning / horizontal-leaning / mixed?
+
+• Category 3 **Rhythm (periodicity and step frequency)**
+- [ACC] Are there regular periodic peaks in Panel 1 or 2? Estimate frequency if visible.
+- [GYRO] Does Panel 3/4 show matching periodicity?
+→ Conclusion: estimated step frequency and rhythmic stability?
+
+• Category 4 **Waveform shape (impact-like vs smooth)**
+- [ACC] Are peaks in Panel 1/2 sharp (impact-like) or smooth (sinusoidal)? Symmetric rise/fall?
+- [GYRO] Are gyroscope waveforms smooth or jerky?
+→ Conclusion: impact-type or smooth transition? Symmetric or asymmetric?
+
+• Category 5 **Postural drift / slow orientation bias**
+- [GYRO] Any visible DC offset or slow drift in Panel 3 axes?
+→ Conclusion: gradual tilt/rotation present?
+
+• Category 6 **Gyro–Acc sync**
+- [SYNC] Do acc peaks (Panel 1/2) and gyro peaks (Panel 3/4) appear time-aligned?
+→ Conclusion: well synchronized or decoupled?
+
+• Category 7 **Vertical impact**
+- [ACC] Estimate peak-to-valley amplitudes of sharp vertical (Z-axis) features in Panel 1
+→ Conclusion: impact strength is high/moderate/low? Consistent or scattered?
+
+────────────────────────────────
+【Output template】
+*Pattern Summary
+- Strength:
+- Axis dominance:
+- Rhythm:
+- Shape:
+- Posture / drift:
+- Gyro–Acc sync:
+- Vertical impact:
