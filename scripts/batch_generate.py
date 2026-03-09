@@ -94,6 +94,7 @@ def main():
     parser = argparse.ArgumentParser(description="Batch process IMU data to generate prompts and LLM responses.")
     parser.add_argument("--npy", default="data/uci_data.npy", help="Path to NumPy array file (N,T,6).")
     parser.add_argument("--dataset", default="uci", help="Dataset name.")
+    parser.add_argument("--exp_id", default="baseline", help="Experiment ID for grouping outputs (e.g. A1, E1, S1).")
     parser.add_argument("--output_dir", default="output/batch_results", help="Directory to save outputs.")
     parser.add_argument("--start_index", type=int, default=0, help="Start index.")
     parser.add_argument("--limit", type=int, default=None, help="Number of samples to process (default: all).")
@@ -177,9 +178,10 @@ def main():
     # Resolve effective model for output path
     effective_model = os.getenv("VLM_MODEL") or "gpt-4o" if args.mode == "visual" else model_name
     
-    # Setup structured output directory
+    # Setup structured output directory by Experiment ID
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    experiment_dir = os.path.join("output", "experiments", args.dataset, timestamp)
+    folder_name = f"{args.dataset}_{args.mode}_{effective_model}"
+    experiment_dir = os.path.join("output", "experiments", args.exp_id, folder_name, timestamp)
     os.makedirs(experiment_dir, exist_ok=True)
     
     # Save Run Configuration
