@@ -86,21 +86,25 @@ def generate_step1(target_text, target_data, target):
     label_ = ['walk', 'still', 'stairsdown', 'stairsup']
     data = []
     for i in range(target_text.shape[0]):
+        # Safely map to the correct sensor array index using original dataframe index
+        orig_idx = target_text.index[i]
         text_label = target_text["label"].iloc[i]
         text1a = str(target_text["pattern"].iloc[i])
         text1b = get_label_semantics(str(target_text["label"].iloc[i]), "healthy")
-        time_series = target_data[i]
+        time_series = target_data[orig_idx]
         label = label_.index(text_label)
 
         if text_label == 'walk':
             index_j = random.choice([0])
             com_s = target_text[target_text["label"] == label_[index_j]]
+            if com_s.empty: com_s = target_text
             com_s = com_s.sample(n=1)
             com_s_a = str(com_s["pattern"].iloc[0])
             com_s_b = get_label_semantics(str(com_s["label"].iloc[0]), "healthy")
 
             index_j = random.choice([1, 2, 3])
             com_ds = target_text[target_text["label"] == label_[index_j]]
+            if com_ds.empty: com_ds = target_text
             com_ds = com_ds.sample(n=1)
             com_ds_a = str(com_ds["pattern"].iloc[0])
             com_ds_b = get_label_semantics(str(com_ds["label"].iloc[0]), "healthy")
@@ -109,12 +113,14 @@ def generate_step1(target_text, target_data, target):
         if text_label == 'still':
             index_j = random.choice([1])
             com_s = target_text[target_text["label"] == label_[index_j]]
+            if com_s.empty: com_s = target_text
             com_s = com_s.sample(n=1)
             com_s_a = str(com_s["pattern"].iloc[0])
             com_s_b = get_label_semantics(str(com_s["label"].iloc[0]), "healthy")
 
             index_j = random.choice([0, 2, 3])
             com_ds = target_text[target_text["label"] == label_[index_j]]
+            if com_ds.empty: com_ds = target_text
             com_ds = com_ds.sample(n=1)
             com_ds_a = str(com_ds["pattern"].iloc[0])
             com_ds_b = get_label_semantics(str(com_ds["label"].iloc[0]), "healthy")
@@ -123,12 +129,14 @@ def generate_step1(target_text, target_data, target):
         if text_label == 'stairsdown' or text_label == 'stairsup':
             index_j = random.choice([2, 3])
             com_s = target_text[target_text["label"] == label_[index_j]]
+            if com_s.empty: com_s = target_text
             com_s = com_s.sample(n=1)
             com_s_a = str(com_s["pattern"].iloc[0])
             com_s_b = get_label_semantics(str(com_s["label"].iloc[0]), "healthy")
 
             index_j = random.choice([0, 1])
             com_ds = target_text[target_text["label"] == label_[index_j]]
+            if com_ds.empty: com_ds = target_text
             com_ds = com_ds.sample(n=1)
             com_ds_a = str(com_ds["pattern"].iloc[0])
             com_ds_b = get_label_semantics(str(com_ds["label"].iloc[0]), "healthy")

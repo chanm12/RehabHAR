@@ -30,9 +30,12 @@ def main():
             
     df["pattern"] = patterns
     
+    # Filter out missing records mapped to "" to allow subset training
+    df = df[df["pattern"] != ""]
+    
     # Save the new CSV 
     df.to_csv(args.csv_out, index=False)
-    print(f"Successfully merged {len(df) - missing} records into {args.csv_out} ({missing} missing)")
+    print(f"Successfully merged {len(df)} records into {args.csv_out} ({missing} missing filtered out)")
 
 if __name__ == "__main__":
     main()

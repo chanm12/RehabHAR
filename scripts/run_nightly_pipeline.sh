@@ -30,7 +30,7 @@ python3 scripts/merge_llm_results.py --csv_in data/df_uci.csv --csv_out data/df_
 
 echo " "
 echo "▶ [3/4] Running Stage 1 (Text Encoder Contrastive Training)"
-python3 training/train_stage1.py --source uci_A1 --num_epochs 10 --batch_size 16 --save_path output/models/A1_uci_stage1_best.pth
+python3 training/train_stage1.py --source uci_A1 --num_epochs 10 --batch_size 16 --model_save_path output/models/A1_uci_stage1_best.pth
 
 echo " "
 echo "▶ [4/4] Running Stage 2 (Sensor Encoder Alignment)"
