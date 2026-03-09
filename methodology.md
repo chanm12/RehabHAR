@@ -52,17 +52,26 @@ A critical challenge in HAR for rehabilitation is that most open-source datasets
 * **Execution:** The LLM receives the degraded signal properties and generates descriptions reflecting lower intensity, poorer rhythm, and reduced steadiness.
 * **Hypothesis:** By artificially generating "impaired" semantic descriptions during Stage 1 pre-training, the sensor encoder in Stage 2 will be better equipped to project actual senior patient data into the correct semantic neighborhood during inference.
 
+### Phase 4: Label Semantics Augmentation
+In addition to augmenting the *sensor signal descriptions* (Phase 3), we can also augment the *ground truth label definitions* generated in Stage 0.
+
+* **Mechanism:** When asking the LLM to define a label like "Squats", we generate two distinct semantic profiles: one describing the biomechanics of a healthy subject, and one describing the expected biomechanics of a senior rehab subject (e.g., reduced ROM, slower cadence, potential compensations).
+* **Execution:** We combine these two profiles into a single, comprehensive "Super-Label" definition representing the full spectrum of the activity. Stage 1 (BERT) is then trained to align both healthy and impaired sensor signals against this unified, broad semantic target.
+* **Hypothesis:** A broader, more inclusive ground-truth semantic target will create a larger "attractor basin" in the embedding space, further improving generalization and zero-shot transfer to unseen senior data.
+
 ## 4. Experimental Matrix
 
-The following table summarizes the planned experimental runs to validate the pipeline. Because the ultimate goal is zero-shot Human Activity Recognition for a senior rehabilitation population, **Keen-Pad (a senior rehab dataset)** will serve as the universal hold-out evaluation metric. **UCI** (healthy) and **StrengthSense** (healthy multi-sensor) will serve as the diverse training corpus.
+The following table summarizes the planned experimental runs to validate the pipeline. Because the ultimate goal is zero-shot Human Activity Recognition for a senior rehabilitation population, **Knee-Pad (a senior rehab dataset)** will serve as the universal hold-out evaluation metric. **UCI** (healthy) and **StrengthSense** (healthy multi-sensor) will serve as the diverse training corpus.
 
-| Exp ID | Prompt Modality | Foundation Model | Train Dataset | Eval Dataset | Data Augmentation | Primary Evaluation Goal |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **A1** | Text/Stats | `gpt-4o-mini` | UCI / StrengthSense | Keen-Pad | None | Baseline text alignment accuracy on senior data. |
-| **A2** | Visual Charts | `gpt-4o` (VLM) | UCI / StrengthSense | Keen-Pad | None | Does visual reasoning of charts transfer better than statistics? |
-| **A3** | VQ Codebook | `gpt-4o-mini` | UCI / StrengthSense | Keen-Pad | None | Does structural tokenization improve senior rhythmic activity detection? |
-| **E1** | Ensemble (Text+Vis+VQ) | `claude-3-5-sonnet` | UCI / StrengthSense | Keen-Pad | None | Does multi-view prompting create a richer, more transferable semantic space? |
-| **S1** | Winning Modality | `gpt-4o` | UCI / StrengthSense | Keen-Pad | **Yes** (Simulated Impairment) | Does artificially degrading healthy data during prompt generation improve zero-shot accuracy on actual senior data? |
+| Exp ID | Prompt Modality | Foundation Model | Train Dataset | Eval Dataset | Feature Augmentation (Phase 3) | Label Augmentation (Phase 4) | Primary Evaluation Goal |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **A1** | Text/Stats | `gpt-4o-mini` | UCI / StrengthSense | Knee-Pad | None | None | Baseline text alignment accuracy on senior data. |
+| **A2** | Visual Charts | `gpt-4o` (VLM) | UCI / StrengthSense | Knee-Pad | None | None | Does visual reasoning of charts transfer better than statistics? |
+| **A3** | VQ Codebook | `gpt-4o-mini` | UCI / StrengthSense | Knee-Pad | None | None | Does structural tokenization improve senior rhythmic activity detection? |
+| **E1** | Ensemble (Text+Vis+VQ) | `claude-3-5-sonnet` | UCI / StrengthSense | Knee-Pad | None | None | Does multi-view prompting create a richer, more transferable semantic space? |
+| **S1** | Winning Modality | `gpt-4o` | UCI / StrengthSense | Knee-Pad | **Yes** (Simulated Impairment) | None | Does artificially degrading healthy continuous data improve zero-shot accuracy? |
+| **L1** | Winning Modality | `gpt-4o` | UCI / StrengthSense | Knee-Pad | None | **Yes** (Dual Healthy+Senior Text) | Does combining healthy & impaired semantic definitions improve the target space? |
+| **U1** | **Ultimate (S1+L1)** | `claude-3-5-sonnet` | All Valid Training | Knee-Pad | **Yes** | **Yes** | Maximum possible zero-shot generalization to the senior domain. |
 
 ## 5. Next Steps
 1. Execute **Phase 1 (Ablation)** on a small, fast-training dataset slice to establish baselines.
