@@ -77,3 +77,21 @@ The following table summarizes the planned experimental runs to validate the pip
 1. Execute **Phase 1 (Ablation)** on a small, fast-training dataset slice to establish baselines.
 2. Review the resulting Stage 2 zero-shot accuracies.
 3. Proceed to full-scale training on the chosen winning modality (or the Phase 2 ensembled approach).
+
+## 6. Findings & Observations
+
+### Experiment A2 (Visual Modality) Trade-offs
+When developing the Visual inference pipeline (using GPT-4o Vision), we discovered a fundamental computer vision trade-off regarding how the IMU signal charts are presented to the model:
+
+1. **Auto-Scaled Subplots (Axis Confusion):**
+   * *Method:* Matplotlib automatically scales the Y-axis of every subplot perfectly to its data range.
+   * *Pro:* The VLM is highly accurate at reading rhythms (~1 Hz movements), shape symmetries, and macro-synchronization over time because the movement envelopes are extremely visible.
+   * *Con:* The VLM suffers from "Axis Confusion". If the Z-axis oscillates by only $\pm0.1$ and the X-axis oscillates by $\pm2.0$, autoscale makes both look visually identical in height. The VLM incorrectly assumes the Z-axis is just as dominant, whereas the Text Modality (A1) catches this immediately using mathematically extracted `rms` and `p2p` limits.
+
+2. **Global Y-Axis Normalization (Amplitude Blindness):**
+   * *Method:* The Accelerometer subplots are globally locked to `±20 m/s²` and Gyroscope subplots are globally locked to `±5 rad/s`.
+   * *Pro:* It mathematically solves the Axis Confusion problem. The VLM immediately realizes which axes are *not* having wild oscillations because they appear relatively flat.
+   * *Con:* It introduces "Amplitude Blindness". By forcing global limits, subtle, low-intensity rhythmic movements (like sitting down or standing up) are visually squashed into near-flat lines. Consequently, the VLM downgrades its rhythm assessment from a "rhythmic movement" to "likely still / no movement."
+
+**Conclusion for Visual Prompting:**
+Pure visual prompting struggles to balance macro-level rhythm detection with micro-level axis comparison. To achieve optimal results, a **Hybrid Approach** is likely required: overlaying the mathematical text summary (A1) *onto* the prompt alongside the image, essentially letting the VLM read the text statistics to confirm the dominant axis while looking at the auto-scaled chart for rhythm and shape.
