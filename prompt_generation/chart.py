@@ -69,6 +69,7 @@ def generate_imu_chart(
         ax.plot(t, acc_svm, color="tab:red", linewidth=1.2)
         ax.set_ylabel("SVM (m/s²)")
         ax.set_title("Accel SVM")
+        ax.set_ylim(0, 20)
         ax.grid(True, alpha=0.3)
 
         # Panel 2: Gyroscope magnitude
@@ -77,6 +78,7 @@ def generate_imu_chart(
         ax.set_ylabel("|ω| (rad/s)")
         ax.set_xlabel("Time (s)")
         ax.set_title("Gyro |ω|")
+        ax.set_ylim(0, 5)
         ax.grid(True, alpha=0.3)
     else:
         # Panel 1: Accelerometer X/Y/Z
@@ -86,6 +88,7 @@ def generate_imu_chart(
         ax.plot(t, acc[:, 2], label="Acc Z (vertical)", color="tab:orange", linewidth=1.2)
         ax.set_ylabel("Acceleration (m/s²)")
         ax.set_title("Accel XYZ")
+        ax.set_ylim(-20, 20)
         ax.legend(loc="upper right")
         ax.grid(True, alpha=0.3)
 
@@ -94,6 +97,7 @@ def generate_imu_chart(
         ax.plot(t, acc_svm, color="tab:red", linewidth=1.2)
         ax.set_ylabel("SVM (m/s²)")
         ax.set_title("Accel SVM")
+        ax.set_ylim(0, 20)
         ax.grid(True, alpha=0.3)
 
         # Panel 3: Gyroscope X/Y/Z
@@ -103,6 +107,7 @@ def generate_imu_chart(
         ax.plot(t, gyro[:, 2], label="Gyro Z (yaw)", color="tab:orange", linewidth=1.2)
         ax.set_ylabel("Angular vel. (rad/s)")
         ax.set_title("Gyro XYZ")
+        ax.set_ylim(-5, 5)
         ax.legend(loc="upper right")
         ax.grid(True, alpha=0.3)
 
@@ -112,6 +117,7 @@ def generate_imu_chart(
         ax.set_ylabel("|ω| (rad/s)")
         ax.set_xlabel("Time (s)")
         ax.set_title("Gyro |ω|")
+        ax.set_ylim(0, 5)
         ax.grid(True, alpha=0.3)
 
     # Optional rep/segment boundary annotations
