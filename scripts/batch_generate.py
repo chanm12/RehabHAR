@@ -20,10 +20,56 @@ try:
 except ImportError:
     OpenAI = None
 
+try:
+    from anthropic import Anthropic
+except ImportError:
+    Anthropic = None
+
 def call_llm(client, model, messages):
     """
-    Calls OpenAI API with fallback for temperature=1 if default fails (e.g. for o1/o3 models).
+    Calls OpenAI or Anthropic API depending on the model name.
     """
+    is_anthropic = model.startswith("claude-")
+    
+    if is_anthropic:
+        # Extract system message, as Anthropic passes it separately
+        system_msg = ""
+        anthropic_messages = []
+        for msg in messages:
+            if msg["role"] == "system":
+                system_msg = msg["content"]
+            else:
+                # Handle text vs visual
+                if isinstance(msg["content"], list):
+                    anth_content = []
+                    for item in msg["content"]:
+                        if item["type"] == "text":
+                            anth_content.append({"type": "text", "text": item["text"]})
+                        elif item["type"] == "image_url":
+                            # Translate OpenAI data URI to Anthropic base64 source block
+                            b64_data = item["image_url"]["url"].split("base64,")[1]
+                            anth_content.append({
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": "image/png",
+                                    "data": b64_data
+                                }
+                            })
+                    anthropic_messages.append({"role": msg["role"], "content": anth_content})
+                else:
+                    anthropic_messages.append({"role": msg["role"], "content": msg["content"]})
+                    
+        resp = client.messages.create(
+            model=model,
+            system=system_msg,
+            messages=anthropic_messages,
+            max_tokens=2048,
+            temperature=0.5
+        )
+        return resp.content[0].text
+
+    # Default to OpenAI logic
     try:
         resp = client.chat.completions.create(
             model=model,
@@ -100,12 +146,27 @@ def main():
     model_name = "gpt-4o-mini" # Default
     if args.call:
         load_dotenv()
-        api_key = os.getenv("OPENAI_API_KEY")
         model_name = os.getenv("MODEL") or model_name
-        if not api_key:
-            print("Error: OPENAI_API_KEY not found in .env. Cannot call LLM.")
-            return
-        client = OpenAI(api_key=api_key)
+        
+        if model_name.startswith("claude-"):
+            if Anthropic is None:
+                print("Error: anthropic SDK not installed. Please pip install anthropic.")
+                return
+            api_key = os.getenv("ANTHROPIC_API_KEY")
+            if not api_key:
+                print("Error: ANTHROPIC_API_KEY not found in .env. Cannot call Anthropic LLM.")
+                return
+            client = Anthropic(api_key=api_key)
+        else:
+            if OpenAI is None:
+                print("Error: openai SDK not installed. Please pip install openai.")
+                return
+            api_key = os.getenv("OPENAI_API_KEY")
+            if not api_key:
+                print("Error: OPENAI_API_KEY not found in .env. Cannot call OpenAI LLM.")
+                return
+            client = OpenAI(api_key=api_key)
+            
         print(f"LLM initialized with model: {model_name}")
 
     # Determine Range
@@ -174,6 +235,17 @@ def main():
                     ]}
                 ]
                 active_model = os.getenv("VLM_MODEL") or "gpt-4o"
+                
+                # If VLM is Claude, we need the Anthropic client initialized 
+                # (in case the base text model was OpenAI but VLM is Claude)
+                if active_model.startswith("claude-") and not isinstance(client, Anthropic):
+                    api_key = os.getenv("ANTHROPIC_API_KEY")
+                    if not api_key:
+                        print(f"Failed on sample {i}: ANTHROPIC_API_KEY required for {active_model}")
+                        continue
+                    vlm_client = Anthropic(api_key=api_key)
+                else:
+                    vlm_client = client
 
             elif args.mode == "vq":
                 token_sequence = quantized_data[i].tolist() if hasattr(quantized_data[i], "tolist") else list(quantized_data[i])
@@ -198,7 +270,8 @@ def main():
             
             # Call LLM
             if args.call:
-                response_text = call_llm(client, active_model, messages)
+                active_client = vlm_client if args.mode == "visual" else client
+                response_text = call_llm(active_client, active_model, messages)
                 with open(result_path, "w") as f:
                     f.write(response_text)
             

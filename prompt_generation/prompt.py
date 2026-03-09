@@ -15,6 +15,11 @@ try:
 except Exception:
     OpenAI = None
 
+try:
+    from anthropic import Anthropic
+except Exception:
+    Anthropic = None
+
 
 _DATASET_DEVICE_LOCATION = {
     "uci": "waist",
@@ -533,19 +538,35 @@ if __name__ == "__main__":
 
     # Optionally call LLM with iterative regeneration
     if args.call:
-        if OpenAI is None:
-            raise RuntimeError("OpenAI SDK not installed. Add 'openai' to requirements and pip install.")
-        if not api_key:
-            raise RuntimeError("OPENAI_API_KEY is not set. Provide --api_key or set it in .env/env.")
-
-        client = OpenAI(api_key=api_key)
+        # Determine initial models so we can check if we need both clients
         if args.mode == "visual":
+            active_model = vlm_model
             system_role = "You are a senior motion analysis expert specializing in interpreting IMU sensor charts."
         elif args.mode == "semantic":
+            active_model = model_name
             system_role = "You are a senior kinesiology and biomechanics expert. Produce precise, structured semantic descriptions."
         else:
+            active_model = model_name
             system_role = "You are a senior motion analysis expert."
+            
         mode_for_eval = "semantic" if args.mode == "semantic" else "analysis"
+
+        # Initialize appropriate client
+        is_anthropic = active_model.startswith("claude-")
+        
+        if is_anthropic:
+            if Anthropic is None:
+                raise RuntimeError("Anthropic SDK not installed. Add 'anthropic' to requirements and pip install.")
+            api_key = os.getenv("ANTHROPIC_API_KEY")
+            if not api_key:
+                raise RuntimeError("ANTHROPIC_API_KEY is not set. Provide it in .env or environment.")
+            client = Anthropic(api_key=api_key)
+        else:
+            if OpenAI is None:
+                raise RuntimeError("OpenAI SDK not installed. Add 'openai' to requirements and pip install.")
+            if not api_key:
+                raise RuntimeError("OPENAI_API_KEY is not set. Provide --api_key or set it in .env/env.")
+            client = OpenAI(api_key=api_key)
 
         best_content = None
         best_eval = None
@@ -579,30 +600,68 @@ if __name__ == "__main__":
                     messages.append({"role": "user", "content": retry_prompt})
                 active_model = model_name
 
-            # Reasoning models (o1, o3) typically require temperature=1 (or do not support it)
+            # Reasoning models (o1, o3) typically require temperature=1
             if active_model.startswith("o1") or active_model.startswith("o3"):
                 temperature = 1.0
             else:
                 temperature = 0.3 if attempt > 1 else 0.5
 
             try:
-                resp = client.chat.completions.create(
-                    model=active_model,
-                    messages=messages,
-                    temperature=temperature,
-                )
+                if is_anthropic:
+                    # Translate to Anthropic format
+                    system_msg = ""
+                    anthropic_messages = []
+                    for msg in messages:
+                        if msg["role"] == "system":
+                            system_msg = msg["content"]
+                        else:
+                            if isinstance(msg["content"], list):
+                                anth_content = []
+                                for item in msg["content"]:
+                                    if item["type"] == "text":
+                                        anth_content.append({"type": "text", "text": item["text"]})
+                                    elif item["type"] == "image_url":
+                                        b64_data = item["image_url"]["url"].split("base64,")[1]
+                                        anth_content.append({
+                                            "type": "image",
+                                            "source": {
+                                                "type": "base64",
+                                                "media_type": "image/png",
+                                                "data": b64_data
+                                            }
+                                        })
+                                anthropic_messages.append({"role": msg["role"], "content": anth_content})
+                            else:
+                                anthropic_messages.append({"role": msg["role"], "content": msg["content"]})
+                    
+                    resp = client.messages.create(
+                        model=active_model,
+                        system=system_msg,
+                        messages=anthropic_messages,
+                        max_tokens=2048,
+                        temperature=temperature
+                    )
+                    content = resp.content[0].text
+                else:
+                    # OpenAI Format
+                    resp = client.chat.completions.create(
+                        model=active_model,
+                        messages=messages,
+                        temperature=temperature,
+                    )
+                    content = resp.choices[0].message.content
             except Exception as e:
-                # If temperature is invalid (e.g. reasoning models), retry with temperature=1.0
-                if "temperature" in str(e) and ("1" in str(e) or "default" in str(e)):
+                # If temperature is invalid (e.g. reasoning models), retry with temperature=1.0 for OpenAI
+                if not is_anthropic and "temperature" in str(e) and ("1" in str(e) or "default" in str(e)):
                     print(f"  [info] Retrying with temperature=1.0 due to model constraint...")
                     resp = client.chat.completions.create(
                         model=active_model,
                         messages=messages,
                         temperature=1.0,
                     )
+                    content = resp.choices[0].message.content
                 else:
                     raise e
-            content = resp.choices[0].message.content
 
             # Evaluate
             try:
