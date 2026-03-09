@@ -18,7 +18,7 @@ export PYTHONPATH=.
 
 echo " "
 echo "▶ [1/4] Starting Batch LLM Generation (Stage 0)"
-python3 scripts/batch_generate.py --dataset uci --exp_id A1 --mode analysis --call
+python3 scripts/batch_generate.py --dataset uci --exp_id A1 --mode analysis --call --resume
 
 # Find the newly created result directory safely
 LATEST_DIR=$(find output/experiments/A1/uci_analysis_* -maxdepth 1 -type d | sort -r | head -n 1)

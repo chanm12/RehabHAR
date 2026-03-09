@@ -65,7 +65,8 @@ def call_llm(client, model, messages):
             system=system_msg,
             messages=anthropic_messages,
             max_tokens=2048,
-            temperature=0.5
+            temperature=0.5,
+            timeout=30.0
         )
         return resp.content[0].text
 
@@ -75,6 +76,7 @@ def call_llm(client, model, messages):
             model=model,
             messages=messages,
             temperature=0.5, # Default temperature
+            timeout=30.0
         )
         return resp.choices[0].message.content
     except Exception as e:
@@ -85,6 +87,7 @@ def call_llm(client, model, messages):
                 model=model,
                 messages=messages,
                 temperature=1.0,
+                timeout=30.0
             )
             return resp.choices[0].message.content
         else:
@@ -99,6 +102,7 @@ def main():
     parser.add_argument("--start_index", type=int, default=0, help="Start index.")
     parser.add_argument("--limit", type=int, default=None, help="Number of samples to process (default: all).")
     parser.add_argument("--call", action="store_true", help="Call LLM for each sample.")
+    parser.add_argument("--resume", action="store_true", help="Resume from the latest directory and skip already generated prompts.")
     parser.add_argument("--mode", choices=["analysis", "visual", "vq"], default="analysis", help="Mode: analysis, visual, or vq (discrete token sequence).")
     parser.add_argument("--quantized", default=None, help="Path to quantized .npy file (required for --mode vq).")
     parser.add_argument("--vq_K", type=int, default=64, help="Codebook size K used during VQ training (for prompt context).")
@@ -181,7 +185,15 @@ def main():
     # Setup structured output directory by Experiment ID
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     folder_name = f"{args.dataset}_{args.mode}_{effective_model}"
-    experiment_dir = os.path.join("output", "experiments", args.exp_id, folder_name, timestamp)
+    base_dir = os.path.join("output", "experiments", args.exp_id, folder_name)
+    
+    experiment_dir = os.path.join(base_dir, timestamp)
+    if args.resume and os.path.exists(base_dir):
+        subdirs = [os.path.join(base_dir, d) for d in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, d))]
+        if subdirs:
+            experiment_dir = max(subdirs, key=os.path.getmtime)
+            print(f"Resuming from latest directory: {experiment_dir}")
+
     os.makedirs(experiment_dir, exist_ok=True)
     
     # Save Run Configuration
@@ -218,6 +230,11 @@ def main():
             base_filename = f"{i:05d}"
             prompt_path = os.path.join(experiment_dir, f"{base_filename}_prompt.txt")
             result_path = os.path.join(experiment_dir, f"{base_filename}_result.txt")
+            
+            # Skip if already generated and valid
+            if args.resume and os.path.exists(result_path) and os.path.getsize(result_path) > 10:
+                success_count += 1
+                continue
             
             # Generate Prompt
             if args.mode == "visual":
